@@ -1,0 +1,95 @@
+// BookWalker Auto-Pagination Script with Page Detection
+let pageIndex = 0;
+let menuObj = null;
+let intervalo = null;
+let totalPages = null;
+const WAIT_TIME = 3000; // Adjust based on your connection speed
+
+// Search for the menu object
+console.log('Searching for BookWalker menu object...');
+for (let key in NFBR.a6G.Initializer) {
+    if (NFBR.a6G.Initializer[key] && 
+        NFBR.a6G.Initializer[key].menu && 
+        NFBR.a6G.Initializer[key].menu.options) {
+        menuObj = NFBR.a6G.Initializer[key];
+        console.log(`✅ Menu object found in: ${key}`);
+        break;
+    }
+}
+
+// Function to detect total pages
+function detectPages() {
+    try {
+        // Look for the page counter
+        const pageCounter = document.getElementById('pageSliderCounter');
+        if (pageCounter && pageCounter.textContent) {
+            const match = pageCounter.textContent.match(/\d+\/(\d+)/);
+            if (match) {
+                return parseInt(match[1]);
+            }
+        }
+    } catch(e) {
+        console.log('Could not detect total pages');
+    }
+    return null;
+}
+
+if (menuObj) {
+    // Detect total pages with a small delay
+    setTimeout(() => {
+        totalPages = detectPages();
+        if (totalPages) {
+            console.log(`Total pages: ${totalPages}`);
+            const estimatedTime = (totalPages * WAIT_TIME) / 1000 / 60;
+            console.log(`Estimated time: ${estimatedTime.toFixed(1)} minutes`);
+        } else {
+            console.log('⚠️ Total pages not detected, will continue until error');
+        }
+    }, 1000);
+    
+    console.log('Starting automatic pagination...');
+    console.log(`Time between pages: ${WAIT_TIME/1000} seconds`);
+    console.log('To stop: clearInterval(intervalo)');
+    console.log('=====================================');
+    
+    intervalo = setInterval(() => {
+        try {
+            // Check if we reached the end
+            if (totalPages && pageIndex >= totalPages) {
+                console.log('=====================================');
+                console.log(`✅ Download complete! Total: ${pageIndex} pages`);
+                console.log('=====================================');
+                clearInterval(intervalo);
+                return;
+            }
+            
+            // Change page
+            menuObj.menu.options.a6l.moveToPage(pageIndex);
+            
+            // Show progress
+            if (totalPages) {
+                const percentage = Math.round((pageIndex + 1) / totalPages * 100);
+                console.log(`Page: ${pageIndex + 1}/${totalPages} (${percentage}%)`);
+            } else {
+                console.log(`Page: ${pageIndex}`);
+            }
+            
+            // Show progress every 10 pages
+            if (pageIndex > 0 && pageIndex % 10 === 0) {
+                const elapsedTime = (pageIndex * WAIT_TIME) / 1000 / 60;
+                console.log(`Progress: ${pageIndex} pages in ${elapsedTime.toFixed(1)} minutes`);
+            }
+            
+            pageIndex++;
+            
+        } catch(e) {
+            console.error('❌ Error changing page:', e);
+            console.log('Possible end of manga or structure change');
+            console.log(`Total pages processed: ${pageIndex}`);
+            clearInterval(intervalo);
+        }
+    }, WAIT_TIME);
+} else {
+    console.error('❌ Menu object not found.');
+    console.log('BookWalker may have changed its structure.');
+}
