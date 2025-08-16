@@ -57,6 +57,7 @@ Press `F12` to open the browser's developer console
 ### Step 2: Run the Script
 
 Copy and paste the entire script into the console and press Enter
+You can find it here: https://github.com/Runbjorn9/Manga_downloaderBW/blob/master/BWAutopaginationScript
 
 ### Step 3: Monitor Progress
 
